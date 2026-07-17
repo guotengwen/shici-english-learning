@@ -1,0 +1,8 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/wordbook"
+  to = "/.netlify/functions/wordbook"
+  status = 200

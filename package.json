@@ -1,0 +1,10 @@
+{
+  "name": "shici-english-learning",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^10.0.10",
+    "@netlify/identity": "^1.0.0"
+  }
+}

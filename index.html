@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f8f5">
+  <title>拾词 - 英语单词学习</title>
+  <style>
+    :root {
+      --ink: #18211f;
+      --muted: #66726e;
+      --paper: #f7f8f5;
+      --surface: #ffffff;
+      --line: #dce2dd;
+      --teal: #0b6b5f;
+      --teal-dark: #07534a;
+      --teal-soft: #e4f1ed;
+      --yellow: #f2c14e;
+      --coral: #df765c;
+      --danger: #b34b3c;
+      --shadow: 0 14px 34px rgba(24, 33, 31, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+
+    .topbar {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 max(24px, calc((100vw - 1120px) / 2));
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 248, 245, 0.95);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; font-size: 20px; }
+    .brand-mark {
+      width: 34px; height: 34px; display: grid; place-items: center;
+      border-radius: 7px; color: white; background: var(--teal); font-family: Georgia, serif;
+    }
+    .account-zone { display: flex; align-items: center; gap: 14px; }
+    .word-count { color: var(--muted); font-size: 14px; }
+    .sync-link { border: 0; padding: 0; background: transparent; color: var(--teal); font-size: 13px; font-weight: 800; text-decoration: none; cursor: pointer; }
+    .sync-status { color: var(--muted); font-size: 12px; }
+    .sync-status.online { color: var(--teal); }
+
+    main { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+    .home-intro { padding: 64px 0 36px; display: flex; justify-content: space-between; align-items: end; gap: 32px; }
+    .eyebrow { color: var(--teal); font-size: 14px; font-weight: 800; margin: 0 0 12px; }
+    h1 { margin: 0; max-width: 700px; font-size: clamp(36px, 6vw, 64px); line-height: 1.1; font-family: Georgia, "Microsoft YaHei", serif; }
+    .intro-note { max-width: 280px; margin: 0 0 6px; color: var(--muted); line-height: 1.75; }
+
+    .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding-bottom: 64px; }
+    .action-card {
+      position: relative; min-height: 190px; padding: 28px; overflow: hidden;
+      text-align: left; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .action-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: #b9c7c1; }
+    .action-card:focus-visible, .primary:focus-visible, .secondary:focus-visible, .icon-btn:focus-visible { outline: 3px solid rgba(11, 107, 95, .25); outline-offset: 3px; }
+    .action-card.featured { background: var(--teal); color: white; border-color: var(--teal); }
+    .action-number { display: block; font-family: Georgia, serif; font-size: 13px; opacity: .7; margin-bottom: 36px; }
+    .action-title { display: block; font-size: 26px; font-weight: 800; margin-bottom: 9px; }
+    .action-copy { display: block; color: var(--muted); line-height: 1.55; }
+    .featured .action-copy { color: rgba(255,255,255,.72); }
+    .action-symbol { position: absolute; right: 22px; top: 18px; font: 58px/1 Georgia, serif; opacity: .13; }
+    .coming { position: absolute; top: 18px; right: 18px; padding: 5px 9px; border-radius: 4px; background: #eef0ed; color: var(--muted); font-size: 12px; font-weight: 700; }
+
+    .page-head { display: flex; align-items: center; justify-content: space-between; padding: 38px 0 26px; border-bottom: 1px solid var(--line); }
+    .page-head h1 { font-size: 38px; }
+    .back-btn { border: 0; background: transparent; color: var(--teal); font-weight: 800; padding: 10px 0; }
+    .form-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 48px; padding: 34px 0 70px; align-items: start; }
+    .form-main { min-width: 0; }
+    .field { margin-bottom: 25px; }
+    label { display: block; margin-bottom: 9px; font-weight: 800; font-size: 14px; }
+    .hint { color: var(--muted); font-size: 13px; font-weight: 400; }
+    input, textarea, select {
+      width: 100%; border: 1px solid #cdd6d1; border-radius: 6px; background: var(--surface); color: var(--ink);
+      padding: 13px 14px; transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, textarea:focus, select:focus { outline: 0; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(11,107,95,.1); }
+    .word-input { min-height: 82px; font-family: Georgia, serif; font-size: 34px; font-weight: 700; }
+    textarea { min-height: 82px; resize: vertical; line-height: 1.6; }
+    .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .pos-field { position: relative; }
+    .pos-field span { position: absolute; left: 13px; top: 13px; color: var(--teal); font-family: Georgia, serif; font-weight: 800; }
+    .pos-field input { padding-left: 55px; }
+    .extra-row { display: grid; grid-template-columns: 120px 1fr 42px; gap: 9px; margin-top: 10px; }
+    .icon-btn { border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--danger); font-size: 22px; }
+    .expand-btn { display: flex; align-items: center; gap: 9px; border: 0; background: transparent; color: var(--teal); padding: 12px 0; font-weight: 800; }
+    .expand-btn .plus { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--teal-soft); }
+    .form-aside { position: sticky; top: 96px; border-left: 3px solid var(--yellow); padding-left: 22px; }
+    .form-aside h2 { margin: 0 0 12px; font-size: 17px; }
+    .form-aside p { margin: 0 0 18px; color: var(--muted); line-height: 1.7; font-size: 14px; }
+    .primary, .secondary, .danger-btn {
+      min-height: 46px; border-radius: 6px; padding: 0 18px; font-weight: 800; border: 1px solid transparent;
+    }
+    .primary { background: var(--teal); color: white; }
+    .primary:hover { background: var(--teal-dark); }
+    .secondary { background: white; border-color: #bcc8c2; color: var(--ink); }
+    .danger-btn { background: #fff5f2; border-color: #edc5bb; color: var(--danger); }
+    .save-btn { width: 100%; }
+
+    .library-toolbar { display: flex; gap: 12px; margin: 28px 0 20px; }
+    .library-toolbar input { flex: 1; }
+    .library-toolbar select { width: 210px; }
+    .word-list { display: grid; gap: 12px; padding-bottom: 60px; }
+    .word-item { display: grid; grid-template-columns: 210px 1fr auto; gap: 24px; align-items: start; padding: 22px; border: 1px solid var(--line); border-radius: 7px; background: white; }
+    .word-item h3 { margin: 0 0 4px; font: 700 24px Georgia, serif; overflow-wrap: anywhere; }
+    .word-item .cn { color: var(--muted); font-size: 14px; }
+    .word-title-row { display: flex; align-items: center; gap: 10px; }
+    .stats { display: flex; gap: 6px; margin-bottom: 9px; }
+    .stat { padding: 4px 7px; border-radius: 4px; background: var(--teal-soft); color: var(--teal-dark); font-size: 12px; font-weight: 800; }
+    .stat.test { background: #fff1cf; color: #765814; }
+    .stat.mark { background: #fff0eb; color: #914734; }
+    .item-actions { display: flex; gap: 8px; }
+
+    .selection-wrap { padding: 30px 0 70px; }
+    .selection-tools { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+    .check-label { display: flex; align-items: center; gap: 10px; margin: 0; cursor: pointer; }
+    .check-label input { width: 18px; height: 18px; accent-color: var(--teal); }
+    .selected-count { color: var(--muted); font-size: 14px; }
+    .selection-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 22px; }
+    .selection-item { display: flex; align-items: center; gap: 14px; min-height: 76px; padding: 15px 17px; border: 1px solid var(--line); border-radius: 7px; background: white; cursor: pointer; }
+    .selection-item:has(input:checked) { border-color: var(--teal); background: var(--teal-soft); }
+    .selection-item input { width: 19px; height: 19px; accent-color: var(--teal); flex: 0 0 auto; }
+    .selection-word { min-width: 0; }
+    .selection-word strong { display: block; font: 700 20px Georgia, serif; overflow-wrap: anywhere; }
+    .selection-word span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+    .start-row { display: flex; justify-content: flex-end; }
+
+    .study-shell { width: min(760px, 100%); margin: 0 auto; padding: 34px 0 70px; }
+    .study-progress { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; color: var(--muted); font-size: 14px; }
+    .progress-track { height: 5px; margin-bottom: 22px; border-radius: 3px; overflow: hidden; background: var(--line); }
+    .progress-bar { height: 100%; background: var(--teal); transition: width .2s; }
+    .study-card { min-height: 410px; padding: 40px; border: 1px solid var(--line); border-radius: 8px; background: white; box-shadow: var(--shadow); }
+    .study-mode { color: var(--teal); font-size: 13px; font-weight: 800; }
+    .study-card h2 { margin: 20px 0 12px; font: 700 clamp(38px, 7vw, 60px)/1.1 Georgia, serif; overflow-wrap: anywhere; }
+    .study-cn { margin: 0 0 28px; color: var(--muted); font-size: 20px; line-height: 1.6; }
+    .study-definitions { display: grid; gap: 10px; }
+    .study-definition { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; padding: 13px 0; border-top: 1px solid var(--line); }
+    .study-definition b { color: var(--teal); font-family: Georgia, serif; }
+    .mark-icon { width: 38px; min-height: 38px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--muted); font-size: 18px; }
+    .mark-icon.active { background: var(--coral); border-color: var(--coral); color: white; }
+    .pos-reveal-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+    .pos-reveal { min-width: 78px; border: 1px solid #b8c9c2; border-radius: 6px; padding: 12px 15px; background: white; color: var(--teal); font-family: Georgia, serif; font-weight: 800; }
+    .revealed-defs { margin-top: 22px; }
+    .study-actions { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; margin-top: 18px; }
+    .study-actions .previous { justify-self: start; }
+    .study-actions .next { justify-self: end; }
+    .session-done { text-align: center; padding: 70px 20px; }
+    .session-done h2 { margin: 0 0 12px; font: 700 36px Georgia, serif; }
+    .session-done p { color: var(--muted); margin-bottom: 25px; }
+    .definitions { display: flex; flex-wrap: wrap; gap: 8px 14px; line-height: 1.6; }
+    .definition b { color: var(--teal); font-family: Georgia, serif; margin-right: 6px; }
+    .empty { text-align: center; padding: 70px 20px; border-top: 1px solid var(--line); color: var(--muted); }
+
+    .modal-backdrop { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 22px; background: rgba(18,27,25,.58); }
+    .modal { width: min(920px, 100%); max-height: calc(100vh - 44px); overflow: auto; border-radius: 8px; background: var(--paper); box-shadow: 0 25px 80px rgba(0,0,0,.22); }
+    .modal-head { padding: 24px 26px; background: var(--surface); border-bottom: 1px solid var(--line); }
+    .modal-head h2 { margin: 0 0 8px; font-size: 24px; }
+    .modal-head p { margin: 0; color: var(--muted); }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; }
+    .compare-panel { padding: 25px; min-width: 0; }
+    .compare-panel + .compare-panel { border-left: 1px solid var(--line); }
+    .compare-label { color: var(--teal); font-size: 13px; font-weight: 800; }
+    .compare-panel h3 { margin: 8px 0 16px; font: 700 28px Georgia, serif; }
+    .compare-content { line-height: 1.75; overflow-wrap: anywhere; }
+    .compare-content p { margin: 5px 0; }
+    .modal-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 10px; padding: 20px 25px; background: white; border-top: 1px solid var(--line); }
+    .toast { position: fixed; z-index: 50; left: 50%; bottom: 28px; transform: translateX(-50%); padding: 12px 18px; border-radius: 6px; background: var(--ink); color: white; box-shadow: var(--shadow); font-weight: 700; }
+    .auth-modal { width: min(460px, 100%); }
+    .auth-form { padding: 24px 26px 28px; }
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 22px; }
+    .auth-tab { min-height: 42px; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--muted); font-weight: 800; }
+    .auth-tab.active { border-color: var(--teal); background: var(--teal-soft); color: var(--teal); }
+    .auth-error { min-height: 22px; margin: 0 0 10px; color: var(--danger); font-size: 13px; }
+    .auth-submit { width: 100%; }
+
+    @media (max-width: 760px) {
+      .topbar { padding: 0 18px; }
+      .account-zone { gap: 8px; }
+      .sync-status { display: none; }
+      main { width: min(100% - 32px, 1120px); }
+      .home-intro { padding-top: 42px; display: block; }
+      .intro-note { margin-top: 20px; }
+      .action-grid { grid-template-columns: 1fr; }
+      .form-layout { grid-template-columns: 1fr; gap: 24px; }
+      .form-aside { position: static; order: -1; }
+      .pos-grid { grid-template-columns: 1fr; }
+      .compare { grid-template-columns: 1fr; }
+      .compare-panel + .compare-panel { border-left: 0; border-top: 1px solid var(--line); }
+      .word-item { grid-template-columns: 1fr; gap: 13px; }
+      .word-item .danger-btn { justify-self: start; }
+      .modal-actions > button { flex: 1 1 44%; }
+      .library-toolbar { flex-wrap: wrap; }
+      .library-toolbar input { flex-basis: 100%; }
+      .library-toolbar select { flex: 1; width: auto; }
+      .selection-list { grid-template-columns: 1fr; }
+      .study-card { min-height: 380px; padding: 25px 20px; }
+      .study-actions { grid-template-columns: 1fr 1fr; }
+      .study-actions > button { width: 100%; }
+      .item-actions { justify-self: start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">W</span><span>拾词</span></div>
+    <div class="account-zone"><div class="word-count"><strong id="wordCount">0</strong> 个已存单词</div><div id="syncArea"><button class="sync-link" id="openAuthBtn" type="button">登录并同步</button></div></div>
+  </header>
+
+  <main>
+    <section id="homeView">
+      <div class="home-intro">
+        <div><p class="eyebrow">MY WORD JOURNAL</p><h1>今天，想怎么学单词？</h1></div>
+        <p class="intro-note">把新词慢慢收进自己的词库。先理解，再记住，最后真正会用。</p>
+      </div>
+      <div class="action-grid">
+        <button class="action-card featured" data-view="add" type="button">
+          <span class="action-number">01</span><span class="action-title">添加单词</span><span class="action-copy">记录拼写、释义、词性和易错点</span><span class="action-symbol">+</span>
+        </button>
+        <button class="action-card" data-study-mode="memorize" type="button">
+          <span class="action-number">02</span><span class="action-title">背诵单词</span><span class="action-copy">按自己的节奏复习词库</span><span class="action-symbol">Aa</span>
+        </button>
+        <button class="action-card" data-study-mode="test" type="button">
+          <span class="action-number">03</span><span class="action-title">自我检验</span><span class="action-copy">遮住答案，检查是否真正掌握</span><span class="action-symbol">?</span>
+        </button>
+        <button class="action-card" data-view="library" type="button">
+          <span class="action-number">04</span><span class="action-title">查看词库</span><span class="action-copy">浏览和管理已经添加的单词</span><span class="action-symbol">≡</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="addView" class="hidden">
+      <div class="page-head"><div><p class="eyebrow">NEW WORD</p><h1>添加一个新词</h1></div><button class="back-btn" type="button">← 返回首页</button></div>
+      <form id="wordForm" class="form-layout">
+        <div class="form-main">
+          <div class="field"><label for="english">英文单词 <span class="hint">必填</span></label><input id="english" class="word-input" autocomplete="off" maxlength="80" placeholder="e.g. accomplish" required></div>
+          <div class="field"><label for="chinese">汉语总释义 <span class="hint">用一句话概括</span></label><textarea id="chinese" maxlength="300" placeholder="例如：完成，实现；达到目标"></textarea></div>
+          <div class="field">
+            <label>分词性释义 <span class="hint">可以只填写需要的词性</span></label>
+            <div class="pos-grid">
+              <div class="pos-field"><span>v.</span><input data-pos="v." maxlength="240" placeholder="动词释义"></div>
+              <div class="pos-field"><span>n.</span><input data-pos="n." maxlength="240" placeholder="名词释义"></div>
+              <div class="pos-field"><span>adj.</span><input data-pos="adj." maxlength="240" placeholder="形容词释义"></div>
+              <div class="pos-field"><span>adv.</span><input data-pos="adv." maxlength="240" placeholder="副词释义"></div>
+            </div>
+            <div id="extraDefinitions"></div>
+            <button id="addPosBtn" class="expand-btn" type="button"><span class="plus">+</span>展开并添加更多词性</button>
+          </div>
+          <div class="field"><label for="notes">注意事项 <span class="hint">选填</span></label><textarea id="notes" maxlength="500" placeholder="记录易错拼写、常用搭配、例句或记忆方法……"></textarea></div>
+        </div>
+        <aside class="form-aside">
+          <h2>写得清楚，记得更牢</h2>
+          <p>不必填满每一项。优先写下你在课文和练习中遇到的真实含义。</p>
+          <button class="primary save-btn" type="submit">保存到我的词库</button>
+        </aside>
+      </form>
+    </section>
+
+    <section id="libraryView" class="hidden">
+      <div class="page-head"><div><p class="eyebrow">MY LIBRARY</p><h1>我的词库</h1></div><button class="back-btn" type="button">← 返回首页</button></div>
+      <div class="library-toolbar"><input id="searchInput" type="search" placeholder="搜索英文或中文释义"><select id="sortSelect" aria-label="词库排序"><option value="time">按添加时间排序</option><option value="memorize">按背诵次数排序</option><option value="mark">按标记次数排序</option></select><button class="primary" id="goAddBtn" type="button">+ 添加</button></div>
+      <div id="wordList" class="word-list"></div>
+    </section>
+
+    <section id="selectionView" class="hidden">
+      <div class="page-head"><div><p class="eyebrow" id="selectionEyebrow">STUDY SET</p><h1 id="selectionTitle">选择要学习的单词</h1></div><button class="back-btn" type="button">← 返回首页</button></div>
+      <div class="selection-wrap">
+        <div class="selection-tools"><label class="check-label"><input id="selectAllWords" type="checkbox">全选</label><span class="selected-count">已选择 <strong id="selectedCount">0</strong> 个</span></div>
+        <div id="selectionList" class="selection-list"></div>
+        <div class="start-row"><button id="startStudyBtn" class="primary" type="button">开始背诵</button></div>
+      </div>
+    </section>
+
+    <section id="studyView" class="hidden">
+      <div class="page-head"><div><p class="eyebrow" id="studyEyebrow">MEMORIZE</p><h1 id="studyTitle">卡片背诵</h1></div><button id="exitStudyBtn" class="back-btn" type="button">结束并返回首页</button></div>
+      <div id="studyShell" class="study-shell"></div>
+    </section>
+  </main>
+
+  <div id="duplicateModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="duplicateTitle">
+    <div class="modal">
+      <div class="modal-head"><h2 id="duplicateTitle">这个单词已经在词库里了</h2><p>请比较两份内容，然后选择保留方式。</p></div>
+      <div class="compare"><article class="compare-panel"><span class="compare-label">正在添加</span><div id="newWordPreview"></div></article><article class="compare-panel"><span class="compare-label">词库中已有</span><div id="storedWordPreview"></div></article></div>
+      <div class="modal-actions"><button class="secondary" id="keepStoredBtn" type="button">保留词库原词</button><button class="danger-btn" id="keepNewBtn" type="button">保留正在添加的词</button><button class="primary" id="mergeBtn" type="button">合并两份释义</button></div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script>
+    const STORAGE_KEY = "shici_words_v2";
+    const views = {
+      home: document.querySelector("#homeView"),
+      add: document.querySelector("#addView"),
+      library: document.querySelector("#libraryView"),
+      selection: document.querySelector("#selectionView"),
+      study: document.querySelector("#studyView")
+    };
+    let words = loadWords();
+    let pendingWord = null;
+    let duplicateIndex = -1;
+    let editingId = null;
+    let studyMode = "memorize";
+    let studyWords = [];
+    let studyIndex = 0;
+    const revealedDefinitions = new Map();
+
+    function normalizeWord(word) {
+      return {
+        ...word,
+        definitions: Array.isArray(word.definitions) ? word.definitions.map(item => ({ ...item, marked: Boolean(item.marked) })) : [],
+        memorizeCount: Number(word.memorizeCount) || 0,
+        testCount: Number(word.testCount) || 0,
+        markCount: Number(word.markCount) || 0,
+        marked: Boolean(word.marked),
+        createdAt: word.createdAt || new Date().toISOString()
+      };
+    }
+    function loadWords() {
+      try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); return Array.isArray(saved) ? saved.map(normalizeWord) : []; }
+      catch { return []; }
+    }
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+      updateCount();
+      if (window.wordbookCloud) window.wordbookCloud.scheduleSave(words);
+    }
+    function updateCount() { document.querySelector("#wordCount").textContent = words.length; }
+    function showView(name) {
+      Object.entries(views).forEach(([key, element]) => element.classList.toggle("hidden", key !== name));
+      if (name === "library") renderLibrary();
+      if (name === "add") setTimeout(() => document.querySelector("#english").focus(), 0);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function showToast(message) {
+      const toast = document.querySelector("#toast");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.add("hidden"), 2300);
+    }
+    function clean(value) { return String(value || "").trim().replace(/\s+/g, " "); }
+    function escapeHtml(value = "") { return String(value).replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char])); }
+    function readForm() {
+      const definitions = [...document.querySelectorAll("[data-pos]")]
+        .map(input => ({ pos: input.dataset.pos, meaning: clean(input.value), marked: false }))
+        .filter(item => item.meaning);
+      return normalizeWord({
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
+        english: clean(document.querySelector("#english").value),
+        chinese: clean(document.querySelector("#chinese").value),
+        definitions,
+        notes: clean(document.querySelector("#notes").value),
+        createdAt: new Date().toISOString()
+      });
+    }
+    function setFormMode(isEditing) {
+      document.querySelector("#addView .page-head h1").textContent = isEditing ? "修改单词" : "添加一个新词";
+      document.querySelector("#addView .eyebrow").textContent = isEditing ? "EDIT WORD" : "NEW WORD";
+      document.querySelector(".save-btn").textContent = isEditing ? "保存修改" : "保存到我的词库";
+    }
+    function resetForm() {
+      document.querySelector("#wordForm").reset();
+      document.querySelector("#extraDefinitions").innerHTML = "";
+      editingId = null;
+      setFormMode(false);
+    }
+    function addExtraDefinition(pos = "prep.", meaning = "") {
+      const row = document.createElement("div");
+      row.className = "extra-row";
+      row.innerHTML = `<select aria-label="选择词性" data-extra-pos><option>prep.</option><option>pron.</option><option>conj.</option><option>num.</option><option>art.</option><option>interj.</option><option>phr.</option></select><input aria-label="释义" maxlength="240" placeholder="填写这一词性的释义"><button class="icon-btn" type="button" title="删除这一项" aria-label="删除这一项">×</button>`;
+      const select = row.querySelector("select");
+      const input = row.querySelector("input");
+      const available = [...select.options].some(option => option.value === pos);
+      select.value = available ? pos : "phr.";
+      input.dataset.pos = available ? pos : pos;
+      input.value = meaning;
+      select.addEventListener("change", () => input.dataset.pos = select.value);
+      row.querySelector("button").addEventListener("click", () => row.remove());
+      document.querySelector("#extraDefinitions").append(row);
+      return input;
+    }
+    function previewHtml(word) {
+      const defs = word.definitions.length ? word.definitions.map(item => `<p><b>${escapeHtml(item.pos)}</b> ${escapeHtml(item.meaning)}</p>`).join("") : "<p>暂无分词性释义</p>";
+      return `<h3>${escapeHtml(word.english)}</h3><div class="compare-content"><p><b>总释义：</b>${escapeHtml(word.chinese || "未填写")}</p>${defs}<p><b>注意：</b>${escapeHtml(word.notes || "未填写")}</p></div>`;
+    }
+    function finishSave(message) { persist(); resetForm(); closeDuplicate(); showToast(message); showView("library"); }
+    function closeDuplicate() { document.querySelector("#duplicateModal").classList.add("hidden"); pendingWord = null; duplicateIndex = -1; }
+    function uniqueParts(a, b) { return [...new Set([a, b].flatMap(value => clean(value).split(/[；;]+/)).map(clean).filter(Boolean))].join("；"); }
+    function mergeWords(stored, incoming) {
+      const positions = new Map();
+      [...stored.definitions, ...incoming.definitions].forEach(item => {
+        const previous = positions.get(item.pos) || { meaning: "", marked: false };
+        positions.set(item.pos, { meaning: uniqueParts(previous.meaning, item.meaning), marked: previous.marked || item.marked });
+      });
+      return { ...stored, chinese: uniqueParts(stored.chinese, incoming.chinese), definitions: [...positions].map(([pos, item]) => ({ pos, ...item })), notes: uniqueParts(stored.notes, incoming.notes), updatedAt: new Date().toISOString() };
+    }
+
+    function openEditor(id) {
+      const word = words.find(item => item.id === id);
+      if (!word) return;
+      resetForm();
+      editingId = id;
+      setFormMode(true);
+      document.querySelector("#english").value = word.english;
+      document.querySelector("#chinese").value = word.chinese || "";
+      document.querySelector("#notes").value = word.notes || "";
+      const defaultPositions = new Set(["v.", "n.", "adj.", "adv."]);
+      word.definitions.forEach(item => {
+        if (defaultPositions.has(item.pos)) document.querySelector(`[data-pos="${item.pos}"]`).value = item.meaning;
+        else addExtraDefinition(item.pos, item.meaning);
+      });
+      showView("add");
+    }
+
+    function renderLibrary() {
+      const query = clean(document.querySelector("#searchInput").value).toLocaleLowerCase();
+      const sort = document.querySelector("#sortSelect").value;
+      const filtered = words.filter(word => JSON.stringify(word).toLocaleLowerCase().includes(query));
+      filtered.sort((a, b) => {
+        if (sort === "memorize") return b.memorizeCount - a.memorizeCount || new Date(b.createdAt) - new Date(a.createdAt);
+        if (sort === "mark") return b.markCount - a.markCount || new Date(b.createdAt) - new Date(a.createdAt);
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      const list = document.querySelector("#wordList");
+      if (!filtered.length) { list.innerHTML = `<div class="empty">${query ? "没有找到匹配的单词" : "词库还是空的，先添加第一个单词吧。"}</div>`; return; }
+      list.innerHTML = filtered.map(word => `<article class="word-item"><div><div class="stats"><span class="stat">背 ${word.memorizeCount}</span><span class="stat test">检 ${word.testCount}</span><span class="stat mark">标 ${word.markCount}</span></div><div class="word-title-row"><h3>${escapeHtml(word.english)}</h3>${word.marked ? '<span class="stat mark">已标记</span>' : ""}</div><div class="cn">${escapeHtml(word.chinese || "暂无总释义")}</div></div><div class="definitions">${word.definitions.length ? word.definitions.map(item => `<span class="definition"><b>${escapeHtml(item.pos)}</b>${escapeHtml(item.meaning)}${item.marked ? " · 已标记" : ""}</span>`).join("") : "暂无分词性释义"}${word.notes ? `<span class="definition"><b>注意</b>${escapeHtml(word.notes)}</span>` : ""}</div><div class="item-actions"><button class="secondary edit-word" data-id="${escapeHtml(word.id)}" type="button">修改</button><button class="danger-btn delete-word" data-id="${escapeHtml(word.id)}" type="button">删除</button></div></article>`).join("");
+      list.querySelectorAll(".edit-word").forEach(button => button.addEventListener("click", () => openEditor(button.dataset.id)));
+      list.querySelectorAll(".delete-word").forEach(button => button.addEventListener("click", () => {
+        if (confirm("确定删除这个单词吗？")) { words = words.filter(word => word.id !== button.dataset.id); persist(); renderLibrary(); showToast("单词已删除"); }
+      }));
+    }
+
+    function openSelection(mode) {
+      if (!words.length) { showToast("请先添加一些单词"); showView("add"); return; }
+      studyMode = mode;
+      document.querySelector("#selectionEyebrow").textContent = mode === "memorize" ? "MEMORIZE SET" : "TEST SET";
+      document.querySelector("#selectionTitle").textContent = mode === "memorize" ? "选择要背诵的单词" : "选择要检验的单词";
+      document.querySelector("#startStudyBtn").textContent = mode === "memorize" ? "开始背诵" : "开始检验";
+      document.querySelector("#selectAllWords").checked = false;
+      const list = document.querySelector("#selectionList");
+      list.innerHTML = words.map(word => `<label class="selection-item"><input class="study-choice" type="checkbox" value="${escapeHtml(word.id)}"><span class="selection-word"><strong>${escapeHtml(word.english)}</strong><span>${escapeHtml(word.chinese || "暂无总释义")}</span></span></label>`).join("");
+      list.querySelectorAll(".study-choice").forEach(input => input.addEventListener("change", updateSelectionCount));
+      updateSelectionCount();
+      showView("selection");
+    }
+    function updateSelectionCount() {
+      const choices = [...document.querySelectorAll(".study-choice")];
+      const checked = choices.filter(input => input.checked);
+      document.querySelector("#selectedCount").textContent = checked.length;
+      document.querySelector("#selectAllWords").checked = choices.length > 0 && checked.length === choices.length;
+      document.querySelector("#startStudyBtn").disabled = checked.length === 0;
+    }
+    function startStudy() {
+      const ids = [...document.querySelectorAll(".study-choice:checked")].map(input => input.value);
+      if (!ids.length) return showToast("请至少选择一个单词");
+      studyWords = ids.map(id => words.find(word => word.id === id)).filter(Boolean);
+      studyWords.forEach(word => { word[studyMode === "memorize" ? "memorizeCount" : "testCount"] += 1; });
+      studyIndex = 0;
+      revealedDefinitions.clear();
+      persist();
+      document.querySelector("#studyEyebrow").textContent = studyMode === "memorize" ? "MEMORIZE" : "SELF TEST";
+      document.querySelector("#studyTitle").textContent = studyMode === "memorize" ? "卡片背诵" : "卡片检验";
+      showView("study");
+      renderStudyCard();
+    }
+    function toggleWordMark(word) {
+      word.marked = !word.marked;
+      if (word.marked) word.markCount += 1;
+      persist();
+      renderStudyCard();
+    }
+    function toggleDefinitionMark(word, index) {
+      const definition = word.definitions[index];
+      if (!definition) return;
+      definition.marked = !definition.marked;
+      if (definition.marked) word.markCount += 1;
+      persist();
+      renderStudyCard();
+    }
+    function revealedFor(word) {
+      if (!revealedDefinitions.has(word.id)) revealedDefinitions.set(word.id, new Set());
+      return revealedDefinitions.get(word.id);
+    }
+    function renderStudyCard() {
+      const shell = document.querySelector("#studyShell");
+      const word = studyWords[studyIndex];
+      if (!word) return renderStudyDone();
+      const progress = ((studyIndex + 1) / studyWords.length) * 100;
+      let cardBody = "";
+      if (studyMode === "memorize") {
+        cardBody = `<p class="study-cn">${escapeHtml(word.chinese || "暂无总释义")}</p><div class="study-definitions">${word.definitions.length ? word.definitions.map((item, index) => `<div class="study-definition"><b>${escapeHtml(item.pos)}</b><span>${escapeHtml(item.meaning)}</span><button class="mark-icon definition-mark ${item.marked ? "active" : ""}" data-index="${index}" type="button" title="标记这条释义" aria-label="标记 ${escapeHtml(item.pos)} 释义">${item.marked ? "✓" : "!"}</button></div>`).join("") : '<div class="study-definition"><b>释义</b><span>暂无分词性释义</span></div>'}</div>`;
+      } else {
+        const revealed = revealedFor(word);
+        const definitions = word.definitions.length ? word.definitions : [{ pos: "释义", meaning: word.chinese || "暂无释义" }];
+        cardBody = `<div class="pos-reveal-grid">${definitions.map((item, index) => `<button class="pos-reveal" data-index="${index}" type="button">${escapeHtml(item.pos)}</button>`).join("")}</div><div class="study-definitions revealed-defs">${definitions.map((item, index) => revealed.has(index) ? `<div class="study-definition"><b>${escapeHtml(item.pos)}</b><span>${escapeHtml(item.meaning)}</span></div>` : "").join("")}</div>`;
+      }
+      shell.innerHTML = `<div class="study-progress"><span>第 ${studyIndex + 1} / ${studyWords.length} 个</span><span>${escapeHtml(word.english)}</span></div><div class="progress-track"><div class="progress-bar" style="width:${progress}%"></div></div><article class="study-card"><span class="study-mode">${studyMode === "memorize" ? "英文 + 中文" : "点击词性查看释义"}</span><h2>${escapeHtml(word.english)}</h2>${cardBody}</article><div class="study-actions"><button class="secondary previous" id="previousCard" type="button" ${studyIndex === 0 ? "disabled" : ""}>← 上一个</button>${studyMode === "test" ? '<button class="secondary" id="revealAll" type="button">显示全部</button>' : '<span></span>'}<button class="secondary ${word.marked ? "danger-btn" : ""}" id="markWholeWord" type="button">${word.marked ? "取消整词标记" : "标记整词"}</button><button class="primary next" id="nextCard" type="button">${studyIndex === studyWords.length - 1 ? "完成本轮" : "下一个 →"}</button></div>`;
+      document.querySelector("#previousCard").addEventListener("click", () => { if (studyIndex > 0) { studyIndex -= 1; renderStudyCard(); } });
+      document.querySelector("#nextCard").addEventListener("click", () => { if (studyIndex < studyWords.length - 1) { studyIndex += 1; renderStudyCard(); } else renderStudyDone(); });
+      document.querySelector("#markWholeWord").addEventListener("click", () => toggleWordMark(word));
+      shell.querySelectorAll(".definition-mark").forEach(button => button.addEventListener("click", () => toggleDefinitionMark(word, Number(button.dataset.index))));
+      shell.querySelectorAll(".pos-reveal").forEach(button => button.addEventListener("click", () => { revealedFor(word).add(Number(button.dataset.index)); renderStudyCard(); }));
+      const revealAll = document.querySelector("#revealAll");
+      if (revealAll) revealAll.addEventListener("click", () => {
+        const count = word.definitions.length || 1;
+        revealedDefinitions.set(word.id, new Set(Array.from({ length: count }, (_, index) => index)));
+        renderStudyCard();
+      });
+    }
+    function renderStudyDone() {
+      document.querySelector("#studyShell").innerHTML = `<div class="session-done"><p class="eyebrow">SESSION COMPLETE</p><h2>本轮完成</h2><p>你刚刚完成了 ${studyWords.length} 个单词的${studyMode === "memorize" ? "背诵" : "检验"}。</p><button class="primary" id="doneToLibrary" type="button">查看词库统计</button></div>`;
+      document.querySelector("#doneToLibrary").addEventListener("click", () => showView("library"));
+    }
+
+    document.querySelectorAll("[data-view]").forEach(button => button.addEventListener("click", () => { resetForm(); showView(button.dataset.view); }));
+    document.querySelectorAll("[data-study-mode]").forEach(button => button.addEventListener("click", () => openSelection(button.dataset.studyMode)));
+    document.querySelectorAll(".back-btn").forEach(button => button.addEventListener("click", () => { resetForm(); showView("home"); }));
+    document.querySelector("#exitStudyBtn").addEventListener("click", () => showView("home"));
+    document.querySelector("#goAddBtn").addEventListener("click", () => { resetForm(); showView("add"); });
+    document.querySelector("#addPosBtn").addEventListener("click", () => addExtraDefinition().focus());
+    document.querySelector("#selectAllWords").addEventListener("change", event => { document.querySelectorAll(".study-choice").forEach(input => input.checked = event.target.checked); updateSelectionCount(); });
+    document.querySelector("#startStudyBtn").addEventListener("click", startStudy);
+    document.querySelector("#wordForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const incoming = readForm();
+      if (!incoming.english) return showToast("请先输入英文单词");
+      if (editingId) {
+        const currentIndex = words.findIndex(word => word.id === editingId);
+        const duplicate = words.findIndex((word, index) => index !== currentIndex && word.english.toLocaleLowerCase() === incoming.english.toLocaleLowerCase());
+        if (duplicate !== -1) return showToast("另一个单词已使用这个英文拼写");
+        const current = words[currentIndex];
+        incoming.definitions = incoming.definitions.map(item => ({ ...item, marked: current.definitions.some(old => old.pos === item.pos && old.meaning === item.meaning && old.marked) }));
+        words[currentIndex] = { ...incoming, id: current.id, createdAt: current.createdAt, memorizeCount: current.memorizeCount, testCount: current.testCount, markCount: current.markCount, marked: current.marked, updatedAt: new Date().toISOString() };
+        finishSave("修改已保存");
+        return;
+      }
+      const index = words.findIndex(word => word.english.toLocaleLowerCase() === incoming.english.toLocaleLowerCase());
+      if (index === -1) { words.unshift(incoming); finishSave("单词已保存"); return; }
+      pendingWord = incoming;
+      duplicateIndex = index;
+      document.querySelector("#newWordPreview").innerHTML = previewHtml(incoming);
+      document.querySelector("#storedWordPreview").innerHTML = previewHtml(words[index]);
+      document.querySelector("#duplicateModal").classList.remove("hidden");
+    });
+    document.querySelector("#keepStoredBtn").addEventListener("click", () => { resetForm(); closeDuplicate(); showToast("已保留词库中的原词"); showView("library"); });
+    document.querySelector("#keepNewBtn").addEventListener("click", () => { const stored = words[duplicateIndex]; words[duplicateIndex] = { ...pendingWord, id: stored.id, createdAt: stored.createdAt, memorizeCount: stored.memorizeCount, testCount: stored.testCount, markCount: stored.markCount, marked: stored.marked }; finishSave("已用新内容替换原词"); });
+    document.querySelector("#mergeBtn").addEventListener("click", () => { words[duplicateIndex] = mergeWords(words[duplicateIndex], pendingWord); finishSave("两份释义已合并"); });
+    document.querySelector("#searchInput").addEventListener("input", renderLibrary);
+    document.querySelector("#sortSelect").addEventListener("change", renderLibrary);
+    updateCount();
+    window.wordbookBridge = {
+      getWords: () => words,
+      replaceWords: incoming => {
+        words = Array.isArray(incoming) ? incoming.map(normalizeWord) : [];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(words));
+        updateCount();
+        if (!views.library.classList.contains("hidden")) renderLibrary();
+      }
+    };
+  </script>
+  <script type="module" src="/assets/auth-sync.js"></script>
+</body>
+</html>
